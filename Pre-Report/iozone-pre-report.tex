@@ -368,7 +368,7 @@ numbers=right,
 % not capitalized unless they are the first or last word of the title.
 % Linebreaks \\ can be used within to get better formatting as desired.
 % Do not put math or special symbols in the title.
-\title{IOZone Benchmark}
+\title{Comparação/Confirmação dos Resultados Obtidos com \textit{IOZone Benchmark}, com a \textit{Framework Dtrace}}
 
 
 % author names and affiliations
@@ -417,7 +417,7 @@ Email: a57779@alunos.uminho.pt}}
 % As a general rule, do not put math, special symbols or citations
 % in the abstract
 \begin{abstract}
-Neste trabalho, desenvolvido no âmbito da disciplina de Engenharia de Sistemas de Computação (ESC), inserida no perfil de Computação Paralela e Distribuída (CPD) do curso de Engenharia Informática, tem como objetivo estudar uma variada gama de testes, constituintes do \textit{IOZone Benchmark}. Este \textit{Benchmark}, é usado para fazer testes de performance de \textit{File Systems}. Depois de definidos os testes que vou usar, posteriormente, tenho de confirmar esses resultados com a ferramenta \textit{Dtrace}, criando diversas scripts que irão fazer traçados dinâmicos de forma a obter os mesmos resultados que foram obtidos na execução do \textit{IOZone Benchmark}.
+Neste trabalho, desenvolvido no âmbito da disciplina de Engenharia de Sistemas de Computação (ESC), inserida no perfil de Computação Paralela e Distribuída (CPD) do curso de Engenharia Informática, tem como objetivo estudar uma variada gama de testes, constituintes do \textit{IOZone Benchmark}. Este \textit{Benchmark}, é usado para fazer testes de performance de \textit{Filesystems}. Depois de definidos os testes que vou usar, posteriormente, tenho de confirmar esses resultados com a ferramenta \textit{Dtrace}, criando diversas scripts que irão fazer traçados dinâmicos de forma a obter os mesmos resultados que foram obtidos na execução do \textit{IOZone Benchmark}.
 \end{abstract}
 
 % no keywords
@@ -438,7 +438,136 @@ Neste trabalho, desenvolvido no âmbito da disciplina de Engenharia de Sistemas 
 
 
 \section{Introdução}
+Com a resolução deste trabalho, é suposto testar o \textit{Filesystem} (no meu caso) da máquina \textit{Solaris 11}, recorrendo a diversos testes do \textit{IOZone Benchmark}. 
 
+Os testes que irei efectuar baseiam-se sobretudo na análise de operações, tais como, \textit{Read, write, re-read, re-write}.
+
+Depois de efetuados os testes em cima referidos, utilizarei a \textit{Framework DTrace}, com a criação de diversas scripts em \textit{D} capazes de calcular os mesmos resultados que foram obtidos com o \textit{IOZone Benchmark}, por forma a poder comparar/comprovar os dois resultados.
+
+\section{Ferramentas Utilizadas}
+Na realização deste trabalho, para além do \textit{IOZone Benchmark}, irão ser utilizadas mais duas ferramentas, a ferramenta \textit{DTrace} e a ferramenta \textit{truss} (ferramenta equivalente ao \textit{strace} contudo é usada em \textit{Solaris}).
+
+O \textit{DTrace} é uma \textit{Framework} que permite fazer traçados dinâmicos, esta é usada para solucionar problemas no \textit{Kernel} e aplicações em produção, em tempo real. O \textit{Dtrace} pode ser utilizado para se obter uma visão geral da execução do sistema, como a quantidade de memória, o tempo de CPU, os recursos usados por os processos activos. Esta \textit{Framework} permite fazer traçados muito mais rebuscados e detalhados, tais como, por exemplo a lista de processos que tenta aceder a um ficheiro.
+
+No âmbito deste trabalho a \textit{Framework DTrace}, é utilizada (através do uso \textit{Scripts} em \textit{D}) com o intuito de se obter os mesmos (ou aproximadamente os mesmos) resultados que se obteve com o \textit{IOZone Benchmark}, por forma a confirmar/comparar esses resultados.
+
+A ferramenta/comando \textit{truss}, é uma ferramenta que executa um determinado comando e produz um traçado de todas as chamadas ao sistema que esse comando produz, os sinais que o comando recebe, e as falhas da máquina que ocorrem. Cada linha do \textit{output} retorna a falha ou o nome do sinal ou o nome da chamada ao sistema com os argumentos e valores de retorno.
+
+No âmbito deste trabalho, a ferramenta \textit{truss} é usada de forma a nos ajudar a compreender o comportamento de toda a aplicação que estamos a executar (neste caso o \textit{IOZone Benchmark}), ver quais as chamadas ao sistema utilizadas pela a aplicação, bem como os sinais e falhas que esta produz. Basicamente esta ferramenta é usada apenas como forma de estudar o comportamento do \textit{Benchmark}.
+
+\section{\textit{IOZone Benchmark}}
+
+O \textit{IOZone} é uma ferramenta de \textit{Benchmark} para \textit{Filesystem's}, com este \textit{benchmark} é possível gerar e medir uma grande variedade de operações, esta ferramenta foi adaptada para diversos sistemas, correndo em diversos sistemas operativos.
+
+O \textit{IOZone} é util para determinar uma basta gama de análises sobre um \textit{Filesystem} de um determinada plataforma de um determinado vendedor. Este \textit{Benchmark} testa o desempenho de ficheiros I/O para as seguintes operações:
+
+\begin{itemize}
+	\item read;
+	\item write;
+	\item re-read;
+	\item re-write;
+	\item read backwards;
+	\item read strided;
+	\item fread; 
+	\item fwrite;
+	\item random read/write;
+	\item pread/pwrite variants;
+	\item aio\_read;
+	\item aio\_write;
+	\item mmap.
+\end{itemize}
+
+Com o uso deste \textit{Benchmark}, obtemos uma grande gama de fatores de desempenho relativos ao \textit{Filesystem}, com isto o cliente consegue ver os pontos fortes e fracos de uma plataforma e de um sistema operativo e tomar uma decisão mais equilibrada quanto a sua escolha.  
+
+\section{Testes/\textit{Flags} a Realizar/Usar com \textit{IOZone}}
+
+Para correr o \textit{IOZone Benchmark}, executa-se o seguinte comando, juntamente, com as \textit{flags} que desejarmos.
+
+\begin{lstlisting}
+/opt/csw/bin/iozone
+\end{lstlisting}
+
+Nesta secção, irei apresentar todos os testes que pretendo realizar com o \textit{Benchmark IOZone}, bem como as \textit{Flags} que pretendo usar na execução do \textit{Benchmark}. Todos os resultados do \textit{IOZone Benchmark} são em Kbytes/sec.
+
+As \textit{Flags} que irei usar são as seguintes:
+\begin{itemize}
+	\item \textbf{-I} - Esta \textit{flag} usa \textit{DIRECT I/O} para todas as operações de ficheiros. Diz ao \textit{Filesystem}, para todas as operações ignorar o \textit{buffer cache} e ir diretamente ao disco;
+	\item \textbf{-a} - Esta \textit{flag} é usada para ativar o modo automático, basicamente, esta flag ativa todos os testes disponíveis do \textit{Benchmark};
+	\item \textbf{-r\#} - Esta \textit{flag} é usada para definir o tamanho do registo, podemos usar \textbf{-r\#k} (tamanho em \textit{Kbytes}), 	\textbf{-r\#m} (tamanho em \textit{Mbytes}), \textbf{-r\#g} (tamanho em \textit{Gbytes});
+	\item \textbf{-s\#} - Esta \textit{flag} é usada para definir o tamanho do ficheiro a testar, podemos usar \textbf{-s\#k} (tamanho em \textit{Kbytes}), 	\textbf{-s\#m} (tamanho em \textit{Mbytes}), \textbf{-s\#g} (tamanho em \textit{Gbytes});
+	\item \textbf{-t\#} - Executa o \textit{Benchmark} com \textit{throughput mode}. Esta opção permite ao utilizador especificar quantas \textit{Threads} ou Processos pretende ativar durante os testes;
+\end{itemize}
+
+No que toca aos testes, apresento em baixo todos os que pretendo realizar:
+\begin{itemize}
+	\item \textbf{\textit{Write} e \textit{Rewrite}} - para este teste é usado a \textit{flag} \textbf{-i0}. O comando completo pode ser consultado em baixo para um ficheiro de 10 Mb com um \textit{Record Size} de 64 Kb:
+	
+	\begin{lstlisting}
+	/opt/csw/bin/iozone -i0 -r64k -s10m
+	\end{lstlisting}
+	
+	\begin{itemize}
+		\item \textbf{\textit{Write}} - mede a \textit{performance} de escrever um ficheiro novo, quando um ficheiro é escrito, não é só os dados que são escritos mas também "meta-dados". Estes "meta-dados" contém informação que permite controlar onde os dados estão armazenados nas unidades físicas de armazenamento. Estes meta-dados contém informação da diretoria e do espaço alocado entre outros dados;
+		\item \textbf{\textit{Rewrite}} - Este teste mede a \textit{performance} de escrever um ficheiro já existente. Quando um ficheiro existente é escrito, o trabalho necessário é menor uma vez que os "meta-dados" já existem. É normal a \textit{performance} de rescrever um ficheiro já existente ser maior que a \textit{performance} de escrever um ficheiro novo.	
+	\end{itemize}
+	
+	O output produzido pelo comando apresentado em cima foi:
+	
+\begin{lstlisting}
+Record Size 64 kB
+File size set to 10240 kB
+Command line used: /opt/csw/bin/iozone -i0 -r64k -s10m
+Output is in kBytes/sec
+Time Resolution = 0.000001 seconds.
+Processor cache size set to 1024 kBytes.
+Processor cache line size set to 32 bytes.
+File stride size set to 17 * record size.
+                                  
+kB  	  	reclen	write  	rewrite    
+10240     	64   		119047   	119346
+	\end{lstlisting}
+	
+	Como podemos verificar pelo \textit{output} em cima, o \textit{Record Size} é de 64 kB e o tamanho do ficheiro é de 10240 kB ou seja 10 Mb. Quanto aos resultados obtidos vemos que as operações de escrita num novo ficheiro (\textit{write}) foram feitas a uma velocidade de 119047 kBytes/sec e as operações de escrita num ficheiro já existente (\textit{Rewrite}) foram feitas a uma velocidade de 119346 kBytes/sec.
+	
+	
+	
+	\item \textbf{\textit{Read} e \textit{Reread}} - para este teste é usado a \textit{flag} \textbf{-i1}. O comando completo pode ser consultado em baixo para um ficheiro de 10 Mb com um \textit{Record Size} de 64 Kb:
+	
+	\begin{lstlisting}
+	/opt/csw/bin/iozone -i1 -r64k -s10m
+	\end{lstlisting}
+	
+	\begin{itemize}
+		\item \textbf{\textit{Read}} - Este teste mede a \textit{performance} de leitura de um ficheiro já existente;
+		\item \textbf{\textit{Reread}} - Este teste mede a \textit{performance} de leitura de um ficheiro que foi lido recentemente. É normal a \textit{performance} ser maior uma vez que o sistema operativo mantém em cache os dados dos arquivos que foram lidos recentemente. Esta \textit{cache} pode ser usada para satisfazer as leituras e melhorar a \textit{performance}.
+	\end{itemize}
+	
+	O output produzido pelo comando apresentado em cima foi:
+	
+\begin{lstlisting}
+Record Size 64 kB
+File size set to 10240 kB
+Command line used: /opt/csw/bin/iozone -i0 -i1 -r64k -s10m
+Output is in kBytes/sec
+Time Resolution = 0.000001 seconds.
+Processor cache size set to 1024 kBytes.
+Processor cache line size set to 32 bytes.
+File stride size set to 17 * record size.
+
+kB  		reclen    	write  	rewrite    	read    	reread    
+10240       64   	  118673   119714  	2637083  	3101102
+\end{lstlisting}	
+
+Como podemos verificar pelo \textit{output} em cima, o \textit{Record Size} é de 64 kB e o tamanho do ficheiro é de 10240 kB ou seja 10 Mb. Quanto aos resultados obtidos vemos que as operações de leitura de um ficheiro já existente (\textit{read}) foram feitas a uma velocidade de 2637083 kBytes/sec e as operações de escrita de um ficheiro lido recentemente (\textit{Reread}) foram feitas a uma velocidade de 3101102 kBytes/sec. Como podemos verificar a velocidade das operações \textit{Reread} é mais elevada, o que já era de se esperar, visto que o sistema operativo mantém em \textit{cache} os dados de arquivos lidos recentemente o que melhora a performance.
+	
+\end{itemize}
+
+\section{Conclusão}
+Numa primeira abordagem a este trabalho, decidi explorar bem o \textit{IOZone Benchmark}, realizando vários testes, com várias \textit{flags}, por forma a perceber bem o funcionamento deste \textit{Benchmark}. Para além da realização destes testes, ainda usei a ferramenta \textit{truss} de forma a perceber qual o comportamento desta aplicação, isto é, que chamadas ao sistema utiliza, quantas vezes são feitas, quantas operações de escrita/leitura são feitas, entre outras análises.
+
+Nesta fase do trabalho a maior dificuldade com que me deparei, foi essencialmente com a análise dos resultados resultantes do comando \textit{truss}, uma vez que, quando executava o comando \textit{truss}, para o \textit{IOZone}, para um determinado tamanho de ficheiro, com um determinado \textit{Record Size}, estava à espera de um resultado (no meu caso, um determinado numero de operações de escrita) e na verdade o resultado era um que não estava à espera, situação que para já não consigo perceber bem.
+
+Como trabalho futuro e para a próxima fase, espero realizar todos os testes em cima descritos, bem como comprovar/comparar os resultados obtidos com o \textit{IOZone Benchmark}, com \textit{Scripts} em \textit{D} que irão ser usadas com a \textit{Framework Dtrace}.
 % An example of a floating figure using the graphicx package.
 % Note that \label must occur AFTER (or within) \caption.
 % For figures, \caption should occur after the \includegraphics.

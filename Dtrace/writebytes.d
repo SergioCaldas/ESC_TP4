@@ -20,7 +20,7 @@ syscall::write:entry
 /flag == 1/
 {
 	self->start_time = timestamp;
-	self->w_size = arg1;	
+	self->w_size = (arg2/1024);	
 	size = size + self->w_size;
 }
 
@@ -36,6 +36,7 @@ syscall::write:return
 syscall::close*:entry
 /self->path=="iozone.tmp"/
 {
-	printf("Size: %d\nElapsed Time: %d\n",size,total_time);
+	printf("%-12s %s\n","SIZE","ELAPSED TIME");
+	printf("%-12d %d\n",size,total_time);
 	flag = 0;
 }
